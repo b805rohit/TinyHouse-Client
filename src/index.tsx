@@ -6,7 +6,7 @@ import reportWebVitals from './reportWebVitals';
 
 ReactDOM.render(
   <React.StrictMode>
-    <Listings />
+    <Listings title="TinyHouse Listings"/>
   </React.StrictMode>,
   document.getElementById('root')
 );
