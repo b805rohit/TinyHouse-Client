@@ -1,8 +1,5 @@
-import { server } from '../../lib/api'
+import { useQuery,useMutation } from '../../lib/api'
 import { ListingsData,DeleteListingData,DeleteListingVariable } from './types'
-interface Props{
-    title:string
-}
 
 const DELETE_LISTING=`
     mutation delete_listing($id:ID!){
@@ -28,25 +25,51 @@ const LISTINGS=`
     }
 `
 
-export const Listings=({title}:Props)=>{
-    const fetchListings=async ()=>{
-        const {data}=await server.fetch<ListingsData>({query:LISTINGS})
-        console.log(data)
+export const Listings=()=>{
+    const { data,loading,error,fetch }=useQuery<ListingsData>(LISTINGS)
+
+    const [deleteListing,{loading:deleteListingLoading,error:deleteListingError}]=useMutation<DeleteListingData,DeleteListingVariable>(DELETE_LISTING)
+
+    const handleDeleteListing=async(id:string)=>{
+        deleteListing({id})
+        fetch()
     }
-    const deleteListing=async()=>{
-        const {data}=await server.fetch<DeleteListingData,DeleteListingVariable>({
-            query:DELETE_LISTING,
-            variables:{
-                id:"5fb7b4cc9c4eb11a9860675d"
+
+    const listings= data ? data.listings :null;
+
+    const listingsList= listings ? (
+        <ul>
+            {
+                listings.map(listing=>(
+                    <li key={listing.id}>
+                        {listing.title}
+                        <button onClick={()=>handleDeleteListing(listing.id)}>DeleteData</button>
+                    </li>
+                ))
             }
-        })
-        console.log(data)
+        </ul>
+    ) : null
+
+    const deletListingLoadingState=deleteListingLoading?
+            <div>Loading...</div>
+            :null
+    
+    const deletListingErrorState=deleteListingError?
+        <div>OOPS Something Went Wrong :)</div>
+        :null
+
+    if(loading){
+        return <div>Loading....</div>
     }
-    return(
+    if(error){
+        return <div>Something Went Wrong Please Reload The Page :)</div>
+    }
+
+    return (
         <div>
-            <h2>{title}</h2>
-            <button onClick={fetchListings}>FetchData</button>
-            <button onClick={deleteListing}>DeleteData</button>
+            {listingsList}
+            {deletListingLoadingState}
+            {deletListingErrorState}
         </div>
     )
 }
